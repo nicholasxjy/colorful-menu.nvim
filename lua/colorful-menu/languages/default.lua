@@ -9,7 +9,10 @@ local M = {}
 ---@return CMHighlights
 function M.default_highlight(completion_item, detail, lang, extra_info_hl)
     extra_info_hl = extra_info_hl or "@comment"
-    local label = completion_item.label
+    local label = type(completion_item.label) == "string" and completion_item.label or ""
+    if type(detail) ~= "string" then
+        detail = nil
+    end
     local highlight_name = utils.hl_by_kind(completion_item.kind, lang)
 
     local highlights = {
