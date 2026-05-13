@@ -23,6 +23,7 @@ Has built-in support for
 - [**roslyn (C#)**](#roslyn)
 - [**basedpyright/pylance/pyright/pylsp (Python)**](#basedpyright)
 - [**dartls (Dart)**](#dartls)
+- [**jdtls (Java)**](#jdtls)
 
 For other languages, it defaults to use highlight group of item's kind.
 
@@ -99,6 +100,9 @@ return {
                     extra_info_hl = "@comment",
                 },
                 dartls = {
+                    extra_info_hl = "@comment",
+                },
+                jdtls = {
                     extra_info_hl = "@comment",
                 },
                 -- The same applies to pyright/pylance
@@ -336,6 +340,13 @@ Thanks to [@seblj](https://github.com/seblj)
 
 ## after:
 <img width="915" alt="image" src="https://github.com/user-attachments/assets/e1c65794-44c5-4e70-b7eb-a639dac6a56c" />
+
+# jdtls
+
+jdtls uses `labelDetails.detail` (e.g. ` : ReturnType`) and `labelDetails.description`
+(e.g. ` - ClassName`) to provide type information. Methods and fields are highlighted
+via Tree-sitter on synthetic Java snippets; classes, interfaces, and enums use LSP
+semantic-token highlight groups with the package/class path dimmed as extra info.
 
 
 

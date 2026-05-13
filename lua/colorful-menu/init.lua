@@ -70,6 +70,9 @@ M.config = {
         dartls = {
             extra_info_hl = "@comment",
         },
+        jdtls = {
+            extra_info_hl = "@comment",
+        },
         fallback = true,
         fallback_extra_info_hl = "@comment",
     },
@@ -144,6 +147,9 @@ local function _highlights(completion_item, ls)
         --
     elseif ls == "dartls" then
         item = require("colorful-menu.languages.dart").dartls(completion_item, ls)
+        --
+    elseif ls == "jdtls" then
+        item = require("colorful-menu.languages.java").jdtls(completion_item, ls)
         --
     elseif ls == "basedpyright" or ls == "pyright" or ls == "pylance" or ls == "pylsp" then
         item = require("colorful-menu.languages.python").py(completion_item, ls)
