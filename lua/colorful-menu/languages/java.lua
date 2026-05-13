@@ -4,6 +4,23 @@ local config = require("colorful-menu").config
 
 local M = {}
 
+--- Extract type info from jdtls labelDetails.detail, e.g. " : int" -> "int"
+---@param detail string?
+---@return string?
+local function extract_type(detail)
+    return detail and detail:match("^%s*:%s*(.-)%s*$")
+end
+
+--- Extract class name from jdtls labelDetails.description, e.g. " - MyClass" -> "MyClass"
+---@param description string?
+---@return string?
+local function extract_description(description)
+    if not description then
+        return nil
+    end
+    return description:match("^%s*%-%s*(.-)%s*$") or vim.trim(description)
+end
+
 ---@param completion_item lsp.CompletionItem
 ---@param ls string
 ---@return CMHighlights
@@ -14,6 +31,7 @@ function M.jdtls(completion_item, ls)
     -- jdtls: labelDetails.description = " - ClassName" or package path for classes
     local detail = completion_item.labelDetails and completion_item.labelDetails.detail
     local description = completion_item.labelDetails and completion_item.labelDetails.description
+    local extra_info_hl = config.ls.jdtls.extra_info_hl
 
     if not kind then
         return utils.highlight_range(label, ls, 0, #label)
@@ -22,21 +40,18 @@ function M.jdtls(completion_item, ls)
     if kind == Kind.Method or kind == Kind.Function then
         -- label: "methodName(Type param, ...)"
         -- detail: " : ReturnType"
-        local return_type = "void"
-        if detail then
-            return_type = detail:match("^%s*:%s*(.-)%s*$") or "void"
-        end
+        local return_type = extract_type(detail) or "void"
         -- Construct synthetic Java: "class C { ReturnType label {} }"
         local prefix = string.format("class C { %s ", return_type)
         local source = prefix .. label .. " {} }"
         local item = utils.highlight_range(source, ls, #prefix, #prefix + #label)
         -- Add class description as dimmed extra info
-        if description and config.ls.jdtls.extra_info_hl ~= false then
-            local extra = description:match("^%s*%-%s*(.-)%s*$") or vim.trim(description)
-            if #extra > 0 then
+        if extra_info_hl ~= false then
+            local extra = extract_description(description)
+            if extra and #extra > 0 then
                 item.text = item.text .. " " .. extra
                 table.insert(item.highlights, {
-                    config.ls.jdtls.extra_info_hl,
+                    extra_info_hl,
                     range = { #label + 1, #item.text },
                 })
             end
@@ -54,7 +69,7 @@ function M.jdtls(completion_item, ls)
     elseif kind == Kind.Field or kind == Kind.Property then
         -- label: "fieldName"
         -- detail: " : Type"
-        local field_type = detail and detail:match("^%s*:%s*(.-)%s*$")
+        local field_type = extract_type(detail)
         if field_type and #field_type > 0 then
             -- Construct synthetic Java: "class C { FieldType fieldName; }"
             local prefix = string.format("class C { %s ", field_type)
@@ -79,12 +94,12 @@ function M.jdtls(completion_item, ls)
         end
         local text = label
         local highlights = { { highlight_name, range = { 0, #label } } }
-        if description and config.ls.jdtls.extra_info_hl ~= false then
+        if extra_info_hl ~= false and description then
             local pkg = vim.trim(description)
             if #pkg > 0 then
                 text = label .. " " .. pkg
                 table.insert(highlights, {
-                    config.ls.jdtls.extra_info_hl,
+                    extra_info_hl,
                     range = { #label + 1, #text },
                 })
             end
@@ -98,31 +113,17 @@ function M.jdtls(completion_item, ls)
             highlights = { { highlight_name, range = { 0, #label } } },
         }
         --
-    elseif kind == Kind.Constant then
-        local text = label
-        local highlights = { { "@constant", range = { 0, #label } } }
-        if detail and config.ls.jdtls.extra_info_hl ~= false then
-            local type_info = detail:match("^%s*:%s*(.-)%s*$") or vim.trim(detail)
-            if #type_info > 0 then
-                text = label .. " " .. type_info
-                table.insert(highlights, {
-                    config.ls.jdtls.extra_info_hl,
-                    range = { #label + 1, #text },
-                })
-            end
-        end
-        return { text = text, highlights = highlights }
-        --
-    elseif kind == Kind.Variable then
-        local highlight_name = utils.hl_exist_or("@lsp.type.variable", "@variable", "java")
+    elseif kind == Kind.Constant or kind == Kind.Variable then
+        local highlight_name = kind == Kind.Constant and "@constant"
+            or utils.hl_exist_or("@lsp.type.variable", "@variable", "java")
         local text = label
         local highlights = { { highlight_name, range = { 0, #label } } }
-        if detail and config.ls.jdtls.extra_info_hl ~= false then
-            local type_info = detail:match("^%s*:%s*(.-)%s*$") or vim.trim(detail)
-            if #type_info > 0 then
+        if extra_info_hl ~= false then
+            local type_info = extract_type(detail) or (detail and vim.trim(detail))
+            if type_info and #type_info > 0 then
                 text = label .. " " .. type_info
                 table.insert(highlights, {
-                    config.ls.jdtls.extra_info_hl,
+                    extra_info_hl,
                     range = { #label + 1, #text },
                 })
             end
@@ -147,7 +148,7 @@ function M.jdtls(completion_item, ls)
             completion_item,
             detail,
             "java",
-            config.ls.jdtls.extra_info_hl
+            extra_info_hl
         )
     end
 end
