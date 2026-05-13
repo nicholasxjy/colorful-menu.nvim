@@ -40,6 +40,8 @@ function M.jdtls(completion_item, ls)
     if kind == Kind.Method or kind == Kind.Function then
         -- label: "methodName(Type param, ...)"
         -- detail: " : ReturnType"
+        -- Fall back to "void" when no return type is available; it produces valid
+        -- Java so Tree-sitter can still highlight the method name correctly.
         local return_type = extract_type(detail) or "void"
         -- Construct synthetic Java: "class C { ReturnType label {} }"
         local prefix = string.format("class C { %s ", return_type)
@@ -114,8 +116,12 @@ function M.jdtls(completion_item, ls)
         }
         --
     elseif kind == Kind.Constant or kind == Kind.Variable then
-        local highlight_name = kind == Kind.Constant and "@constant"
-            or utils.hl_exist_or("@lsp.type.variable", "@variable", "java")
+        local highlight_name
+        if kind == Kind.Constant then
+            highlight_name = "@constant"
+        else
+            highlight_name = utils.hl_exist_or("@lsp.type.variable", "@variable", "java")
+        end
         local text = label
         local highlights = { { highlight_name, range = { 0, #label } } }
         if extra_info_hl ~= false then
