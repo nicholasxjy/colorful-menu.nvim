@@ -21,26 +21,11 @@ local function _lua_compute_completion_highlights(completion_item, ls)
         return utils.highlight_range(source, ls, 2, 2 + #text)
     end
 
-    local highlight_name
-    if kind == Kind.Constant then
-        highlight_name = "@constant.lua"
-    elseif kind == Kind.Function or kind == Kind.Method then
-        highlight_name = "@function.lua"
-    elseif kind == Kind.Property then
-        highlight_name = "@property.lua"
-    elseif kind == Kind.Variable then
-        highlight_name = "@variable.lua"
-    elseif kind == Kind.Keyword then
-        highlight_name = "@keyword.lua"
-    else
-        highlight_name = config.fallback_highlight
-    end
-
     return {
         text = label,
         highlights = {
             {
-                highlight_name,
+                utils.hl_by_kind(kind, "lua"),
                 range = { 0, #label },
             },
         },

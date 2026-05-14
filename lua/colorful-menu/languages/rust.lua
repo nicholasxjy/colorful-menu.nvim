@@ -170,22 +170,7 @@ local function _rust_analyzer(completion_item, ls)
         end
         --
     else
-        local highlight_name = nil
-        if kind == Kind.Struct then
-            highlight_name = "@type"
-        elseif kind == Kind.Enum then
-            highlight_name = utils.hl_exist_or("@lsp.type.enum", "@type", "rust")
-        elseif kind == Kind.EnumMember then
-            highlight_name = utils.hl_exist_or("@lsp.type.enumMember", "@constant", "rust")
-        elseif kind == Kind.Interface then
-            highlight_name = utils.hl_exist_or("@lsp.type.interface", "@type", "rust")
-        elseif kind == Kind.Keyword then
-            highlight_name = "@keyword"
-        elseif kind == Kind.Value or kind == Kind.Constant then
-            highlight_name = "@constant"
-        else
-            highlight_name = config.fallback_highlight
-        end
+        local highlight_name = utils.hl_by_kind(kind, "rust")
 
         if detail then
             detail = vim.trim(detail)

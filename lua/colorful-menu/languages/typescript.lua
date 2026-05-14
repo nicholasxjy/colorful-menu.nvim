@@ -1,5 +1,4 @@
 local utils = require("colorful-menu.utils")
-local Kind = require("colorful-menu").Kind
 local config = require("colorful-menu").config
 
 local M = {}
@@ -16,51 +15,27 @@ end
 function M.ts_server(completion_item, ls)
     local label = completion_item.label
     local detail = completion_item.detail
+    local detail_text = detail and one_line(detail) or nil
     local kind = completion_item.kind
     -- Combine label + detail for final display
-    local text = (detail and config.ls.ts_ls.extra_info_hl ~= false) and (label .. " " .. one_line(detail)) or label
+    local text = (detail_text and config.ls.ts_ls.extra_info_hl ~= false) and (label .. " " .. detail_text) or label
 
     if not kind then
         return utils.highlight_range(text, ls, 0, #text)
     end
 
-    local highlight_name
-    if kind == Kind.Class then
-        highlight_name = "@type"
-    elseif kind == Kind.Enum then
-        highlight_name = utils.hl_exist_or("@lsp.type.enum", "@type")
-    elseif kind == Kind.EnumMember then
-        highlight_name = utils.hl_exist_or("@lsp.type.enumMember", "@type")
-    elseif kind == Kind.Interface then
-        highlight_name = utils.hl_exist_or("@lsp.type.interface", "@type")
-    elseif kind == Kind.Constructor then
-        highlight_name = "@type"
-    elseif kind == Kind.Constant then
-        highlight_name = "@constant"
-    elseif kind == Kind.Function or kind == Kind.Method then
-        highlight_name = "@function"
-    elseif kind == Kind.Property or kind == Kind.Field then
-        highlight_name = "@property"
-    elseif kind == Kind.Variable then
-        highlight_name = "@variable"
-    elseif kind == Kind.Keyword then
-        highlight_name = "@keyword"
-    else
-        highlight_name = config.fallback_highlight
-    end
-
     local highlights = {
         {
-            highlight_name,
+            utils.hl_by_kind(kind, "typescript"),
             range = { 0, #label },
         },
     }
 
-    if detail and config.ls.ts_ls.extra_info_hl ~= false then
+    if detail_text and config.ls.ts_ls.extra_info_hl ~= false then
         local extra_info_hl = config.ls.ts_ls.extra_info_hl
         table.insert(highlights, {
             extra_info_hl,
-            range = { #label + 1, #label + 1 + #detail },
+            range = { #label + 1, #label + 1 + #detail_text },
         })
     end
 
@@ -83,48 +58,27 @@ function M.vtsls(completion_item, ls)
         return utils.highlight_range(label, ls, 0, #label)
     end
 
-    local highlight_name
-    if kind == Kind.Class then
-        highlight_name = "@type"
-    elseif kind == Kind.Enum then
-        highlight_name = utils.hl_exist_or("@lsp.type.enum", "@type")
-    elseif kind == Kind.EnumMember then
-        highlight_name = utils.hl_exist_or("@lsp.type.enumMember", "@type")
-    elseif kind == Kind.Interface then
-        highlight_name = utils.hl_exist_or("@lsp.type.interface", "@type")
-    elseif kind == Kind.Constructor then
-        highlight_name = "@type"
-    elseif kind == Kind.Constant then
-        highlight_name = "@constant"
-    elseif kind == Kind.Function or kind == Kind.Method then
-        highlight_name = "@function"
-    elseif kind == Kind.Property or kind == Kind.Field then
-        highlight_name = "@property"
-    elseif kind == Kind.Variable then
-        highlight_name = "@variable"
-    else
-        highlight_name = config.fallback_highlight
-    end
-
     local description = completion_item.labelDetails and completion_item.labelDetails.description
+    local description_text = description and one_line(description) or nil
     local detail = completion_item.detail
+    local detail_text = detail and one_line(detail) or nil
 
     local highlights = {
         {
-            highlight_name,
+            utils.hl_by_kind(kind, "typescript"),
             range = { 0, #label },
         },
     }
     local text = label
     if config.ls.vtsls.extra_info_hl ~= false then
-        if description then
-            text = label .. " " .. one_line(description)
+        if description_text then
+            text = label .. " " .. description_text
             table.insert(highlights, {
                 config.ls.vtsls.extra_info_hl,
                 range = { #label + 1, #text },
             })
-        elseif detail then
-            text = label .. " " .. one_line(detail)
+        elseif detail_text then
+            text = label .. " " .. detail_text
             table.insert(highlights, {
                 config.ls.vtsls.extra_info_hl,
                 range = { #label + 1, #text },

@@ -167,23 +167,33 @@ function M.hl_by_kind(kind, lang)
     elseif kind == Kind.Function then
         highlight_name = M.hl_exist_or("@lsp.type.function", "@function", lang)
     elseif kind == Kind.Constructor then
-        highlight_name = "@constructor"
+        highlight_name = M.hl_exist_or("@constructor", "@function", lang)
     elseif kind == Kind.Variable then
         highlight_name = M.hl_exist_or("@lsp.type.variable", "@variable", lang)
     elseif kind == Kind.Field then
-        highlight_name = M.hl_exist_or("@lsp.type.field", "@field", lang)
-    elseif kind == Kind.Keyword then
-        highlight_name = "@keyword"
+        highlight_name = M.hl_exist_or("@lsp.type.field", M.hl_exist_or("@field", "@property", lang), lang)
     elseif kind == Kind.Property then
-        highlight_name = M.hl_exist_or("@lsp.type.property", "@property", lang)
+        highlight_name = M.hl_exist_or("@lsp.type.property", M.hl_exist_or("@property", "@field", lang), lang)
+    elseif kind == Kind.Keyword then
+        highlight_name = M.hl_exist_or("@keyword", "@keyword", lang)
     elseif kind == Kind.Module then
-        highlight_name = M.hl_exist_or("@lsp.type.namespace", "@namespace", lang)
+        highlight_name = M.hl_exist_or("@lsp.type.namespace", M.hl_exist_or("@module", "@namespace", lang), lang)
     elseif kind == Kind.Class then
         highlight_name = M.hl_exist_or("@lsp.type.class", "@type", lang)
     elseif kind == Kind.Struct then
         highlight_name = M.hl_exist_or("@lsp.type.struct", "@type", lang)
-    elseif kind == Kind.Constant then
-        highlight_name = "@constant"
+    elseif kind == Kind.Interface then
+        highlight_name = M.hl_exist_or("@lsp.type.interface", "@type", lang)
+    elseif kind == Kind.Enum then
+        highlight_name = M.hl_exist_or("@lsp.type.enum", "@type", lang)
+    elseif kind == Kind.EnumMember then
+        highlight_name = M.hl_exist_or("@lsp.type.enumMember", "@constant", lang)
+    elseif kind == Kind.TypeParameter then
+        highlight_name = M.hl_exist_or("@lsp.type.typeParameter", "@type", lang)
+    elseif kind == Kind.Operator then
+        highlight_name = M.hl_exist_or("@operator", "@operator", lang)
+    elseif kind == Kind.Value or kind == Kind.Constant then
+        highlight_name = M.hl_exist_or("@constant", "@constant", lang)
     else
         highlight_name = config.fallback_highlight
     end
